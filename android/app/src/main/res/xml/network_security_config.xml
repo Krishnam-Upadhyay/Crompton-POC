@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic for localhost in debug mode -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+    <domain-config>
+        <domain includeSubdomains="true">prosaresdev03.azurewebsites.net</domain>
+        <pin-set>
+            <pin digest="SHA-256">cfZoOJHvBCZpfWBcceUflJp8zRQ/QD7gxSDY+2PubL4=</pin>
+            <pin digest="SHA-256">E++ujdrbZMGIJ0eA9QXCCHs5D8ABeIzQ2mAqHPFN+gs=</pin>
+        </pin-set>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

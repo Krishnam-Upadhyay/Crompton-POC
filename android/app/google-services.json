@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1085882922109",
+    "project_id": "prosares-hindalco-shillim",
+    "storage_bucket": "prosares-hindalco-shillim.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1085882922109:android:ca439e2ef65b4ff9072d14",
+        "android_client_info": {
+          "package_name": "com.prosares.poc.geofencing"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJXoJ39up4wLfmuXxU0r309nRBiMEjSRM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
