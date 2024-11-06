@@ -6,10 +6,16 @@ import {
   Button,
   Alert,
   PermissionsAndroid,
+  TouchableOpacity,
 } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
+import {Calendar} from 'react-native-calendars';
+import ContainerView from "../../components/ContainerView"
 import Geolocation from 'react-native-geolocation-service';
 import BaseText from '../../components/BaseText/BaseText';
 import colors from '../../globals/colors';
+import moment from 'moment';
+import CalenderItem from '../../components/CalenderItem';
 
 const OFFICE_COORDINATES = [
   {latitude: 19.173884, longitude: 72.846613},
@@ -32,6 +38,86 @@ const metersToDegrees = (meters: any) => {
 
 const Home = () => {
   const [isWithinArea, setIsWithinArea] = useState(false);
+
+  const [isEditCancelModalOpen, setIsEditCancelModalOpen] = useState(false);
+  const [particularLeaveWFH, setParticularLeaveWFH] = useState<any>({});
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [isMonthYearModalOpen, setIsMonthYearModalOpen] = useState(false);
+
+  function pad(d: number) {
+    return d < 10 ? '0' + d.toString() : d.toString();
+  }
+  //variables for the calender
+  const [currentDate, setCurrentDate] = useState(
+    moment().utcOffset('+05:30').format('YYYY-MM-DD'),
+  );
+
+  const [minMaxDate, setMinMaxDate] = useState({
+    minDate: moment()
+      .utcOffset('+05:30')
+      .subtract(6, 'months')
+      .startOf('month')
+      .format('YYYY-MM-DD')
+      .toString(),
+    maxDate: moment()
+      .utcOffset('+05:30')
+      .add(6, 'months')
+      .endOf('month')
+      .format('YYYY-MM-DD')
+      .toString(),
+  });
+
+  const [disabledDatesArray, setDisabledDatesArray] = useState<string[]>([]);
+  const [disabledArrows, setDisabledArrows] = useState({
+    leftArrow: false,
+    rightArrow: false,
+  });
+
+
+  //onrefreshFuncion
+ 
+  //calender weekDateFunction
+  const weekendsDateFunction = (
+    year = moment().utcOffset('+05:30').year(),
+    month = moment().utcOffset('+05:30').month(),
+  ) => {
+    let dayInNumber = moment().utcOffset('+05:30').month(month).daysInMonth(); //Month starts from 0 to 11
+    let weekendsDatesObject = {};
+    let weekendsDatesArray: any[] = [];
+
+    for (let i = 0; i < dayInNumber; i++) {
+      let typeOfDay = moment(`${year}-${month + 1}-01`)
+        .utcOffset('+05:30')
+        .month(month)
+        .add(i, 'd')
+        .isoWeekday();
+
+      if (typeOfDay == 6 || typeOfDay == 7) {
+        let momentMonth = moment()
+          .utcOffset('+05:30')
+          .month(month)
+          .format('MM');
+
+        let date = `${year}-${momentMonth}-${pad(i + 1)}`;
+
+        //For markedDates
+        weekendsDatesObject = {
+          ...weekendsDatesObject,
+          [date]: {disabled: true, disableTouchEvent: true},
+        };
+
+        //For customDates
+        weekendsDatesArray.push(date);
+      }
+    }
+
+    //For markedDates
+    // setDisabledDatesObject(weekendsDatesObject);
+
+    //For customDates
+    setDisabledDatesArray(weekendsDatesArray);
+    return weekendsDatesArray;
+  };
 
   const requestLocationPermission = async () => {
     try {
@@ -108,9 +194,135 @@ const Home = () => {
     );
   };
 
+ /*  const callLeavesAppliedScreen = (
+    id: number,
+    fromDate: any,
+    toDate: any,
+    intimationType: string,
+    isOutOfOfficeEnable: boolean,
+    outOfOfficeMessage: string = '',
+    formMode: FormMode = FormMode.Edit,
+  ) => {
+    logs.info('Navigating to Leaves Applied Screen');
+    // console.log(
+    //   id,
+    //   fromDate,
+    //   toDate,
+    //   intimationType,
+    //   isOutOfOfficeEnable,
+    //   outOfOfficeMessage,
+    //   formMode,
+    // );
+
+    props.navigation.navigate('LeavesAppliedScreen', {
+      id,
+      fromDate,
+      toDate,
+      intimationType,
+      isOutOfOfficeEnable,
+      outOfOfficeMessage,
+      formMode,
+      FromDateSys: fromDate,
+      ToDateSys: toDate,
+    });
+  }; */
+
   return (
     <SafeAreaView
       style={{flex: 1, backgroundColor: colors.screenBackgroundColor}}>
+         <ContainerView>
+          <Calendar
+            firstDay={1}
+            enableSwipeMonths
+            disableAllTouchEventsForDisabledDays
+            current={moment(currentDate)
+              .utcOffset('+05:30')
+              .format('YYYY-MM-DD')
+              .toString()}
+            // markedDates={disabledDatesObject}
+            onMonthChange={(date:any) => {
+              let changedMonthStartDateString = moment(date.dateString)
+                .startOf('year')
+                .format('YYYYMMDD');
+              let changedMonthEndDateString = moment(date.dateString)
+                .endOf('year')
+                .format('YYYYMMDD');
+              let changedMonthYear = moment(date.dateString).format('YYYY');
+              let previousSavedMonthYear = moment(currentDate).format('YYYY');
+
+              let changedMonthNYearFormat = moment(date.dateString).format(
+                'YYYY-MM',
+              );
+              let minDateMonthNYearFormat = moment(minMaxDate.minDate).format(
+                'YYYY-MM',
+              );
+              let maxDateMonthNYearFormat = moment(minMaxDate.maxDate).format(
+                'YYYY-MM',
+              );
+
+              weekendsDateFunction(date.year, date.month - 1);
+              setCurrentDate(date.dateString);
+
+              if (changedMonthNYearFormat == minDateMonthNYearFormat) {
+                setDisabledArrows({leftArrow: true, rightArrow: false});
+              } else if (changedMonthNYearFormat == maxDateMonthNYearFormat) {
+                setDisabledArrows({leftArrow: false, rightArrow: true});
+              } else {
+                setDisabledArrows({leftArrow: false, rightArrow: false});
+              }
+
+              if (changedMonthYear != previousSavedMonthYear) {
+               /*  onRefresh(
+                  changedMonthStartDateString,
+                  changedMonthEndDateString,
+                ); */
+              }
+            }}
+            // eslint-disable-next-line react/no-unstable-nested-components
+            dayComponent={({date, state}: any) => {
+              return (
+                <CalenderItem
+                  date={date}
+                  state={state}
+                  
+                  disabledDatesArray={disabledDatesArray}
+                  
+                  minMaxDate={minMaxDate}
+                  setIsEditCancelModalOpen={setIsEditCancelModalOpen}
+                  setParticularLeaveWFH={setParticularLeaveWFH}
+                  callLeavesAppliedScreen={()=>console.log("clicked")}
+                />
+              );
+            }}
+            disabledDaysIndexes={[5, 6]}
+            // displayLoadingIndicator={isLoading}
+            theme={{
+              // indicatorColor: Colors.primary,
+              textSectionTitleColor: colors.blackColor,
+              arrowColor: "green",
+            }}
+            // hideArrows
+            renderHeader={(date:any) => {
+              let dateString = date.toString();
+
+              return (
+                <TouchableOpacity
+                  style={styles.calendarWeekDays}
+                  onPress={() => {
+                    setIsMonthYearModalOpen(true);
+                  }}>
+                  <BaseText style={styles.calendarWeekDaysText}>
+                    {moment(dateString).format('MMMM YYYY')}
+                  </BaseText>
+                </TouchableOpacity>
+              );
+            }}
+            minDate={minMaxDate.minDate}
+            maxDate={minMaxDate.maxDate}
+            // disableArrowLeft={disabledArrows.leftArrow}
+            // disableArrowRight={disabledArrows.rightArrow}
+          />
+        </ContainerView>
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <BaseText style={{color: colors.blackColor}}>HomeScreen</BaseText>
         <Button title="Check Login" onPress={checkLocation} />
@@ -120,5 +332,18 @@ const Home = () => {
 };
 
 export default Home;
-
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {flex: 1},
+  calendarContainer: {alignItems: 'center', justifyContent: 'center'},
+  calendarWeekDays: {
+    borderWidth: 1,
+    borderColor: colors.blackColor,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarWeekDaysText: {color: "green", fontWeight: 'bold'},
+ 
+});
