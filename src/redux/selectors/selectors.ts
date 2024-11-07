@@ -56,3 +56,8 @@ export const locationBottomSheetVisibility = (state: any) =>
 //Bottom Sheet visibility Location
 export const locationSelectedLocations = (state: any) =>
   state.locationBottomSheetSlice.selectedLocations;
+
+//to get the leave details
+//Home Page Data
+export const loginDetailsOfUser= (state: any) =>
+  state?.loginDetails?.loginDetails ;

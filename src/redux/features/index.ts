@@ -12,6 +12,7 @@ import notificationCountReducer from './Slices/notificationCount';
 import behaviourMatrixSliceRedcuer from './Slices/behaviourSlice';
 import headerButtonAlertRedcuer from './Slices/headerButtonAlert';
 import locationBottomSheetSlice from './Slices/locationBottomSheetSlice';
+import  loginDetailsSlice from './Slices/loginDetailsSlice';
 
 
 //createing root reducer for all the reducers
@@ -29,6 +30,7 @@ const rootReducer = combineReducers({
   behaviourMatrixData: behaviourMatrixSliceRedcuer,
   headerAlert: headerButtonAlertRedcuer,
   locationBottomSheetSlice: locationBottomSheetSlice,
+  loginDetails:loginDetailsSlice
 });
 
 export default rootReducer;

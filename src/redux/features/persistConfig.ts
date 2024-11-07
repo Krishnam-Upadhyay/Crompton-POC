@@ -15,6 +15,7 @@ export const persistConfig = {
     'userData',
     'masterData',
     'notificationCount',
+    'loginDetails',
   ], // specify which slices to persist
   //whitelist: persistWhitelist,
   timeout: 0,

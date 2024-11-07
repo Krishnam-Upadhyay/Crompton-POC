@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -7,15 +7,24 @@ import {
   Alert,
   PermissionsAndroid,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import {Calendar} from 'react-native-calendars';
-import ContainerView from "../../components/ContainerView"
+import ContainerView from '../../components/ContainerView';
 import Geolocation from 'react-native-geolocation-service';
 import BaseText from '../../components/BaseText/BaseText';
 import colors from '../../globals/colors';
 import moment from 'moment';
 import CalenderItem from '../../components/CalenderItem';
+import {useSelector, useDispatch} from 'react-redux';
+import {loginDetailsOfUser} from '../../redux/selectors/selectors';
+import {setLoginDetails} from '../../redux/features/Slices/loginDetailsSlice';
+import ButtonView from '../../components/ButtonView/ButtonView';
+import {opacity} from 'react-native-reanimated/lib/typescript/Colors';
+import {logoutUser} from '../../Helpers/CommonFunctions/CommonFunctions';
+
+const {height, width} = Dimensions.get('window');
 
 const OFFICE_COORDINATES = [
   {latitude: 19.173884, longitude: 72.846613},
@@ -24,7 +33,7 @@ const OFFICE_COORDINATES = [
   {latitude: 19.173927, longitude: 72.84686},
 ];
 
-const EXPANSION_DISTANCE = 10;
+const EXPANSION_DISTANCE = 5;
 
 const metersToDegrees = (meters: any) => {
   const latConversion = 1 / 111139; // 1 degree latitude in meters
@@ -39,10 +48,9 @@ const metersToDegrees = (meters: any) => {
 const Home = () => {
   const [isWithinArea, setIsWithinArea] = useState(false);
 
-  const [isEditCancelModalOpen, setIsEditCancelModalOpen] = useState(false);
-  const [particularLeaveWFH, setParticularLeaveWFH] = useState<any>({});
-  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isMonthYearModalOpen, setIsMonthYearModalOpen] = useState(false);
+  const [currentLattitude, setCurrentLattitude] = useState<any>();
+  const [currentLongitude, setCurrentLongitude] = useState<any>();
 
   function pad(d: number) {
     return d < 10 ? '0' + d.toString() : d.toString();
@@ -51,7 +59,10 @@ const Home = () => {
   const [currentDate, setCurrentDate] = useState(
     moment().utcOffset('+05:30').format('YYYY-MM-DD'),
   );
+  const dispatch = useDispatch();
+  const currentUSerLoginHistory = useSelector(loginDetailsOfUser);
 
+  console.log(currentUSerLoginHistory, 'currentUSerLoginDetails');
   const [minMaxDate, setMinMaxDate] = useState({
     minDate: moment()
       .utcOffset('+05:30')
@@ -73,15 +84,14 @@ const Home = () => {
     rightArrow: false,
   });
 
-
   //onrefreshFuncion
- 
+
   //calender weekDateFunction
   const weekendsDateFunction = (
     year = moment().utcOffset('+05:30').year(),
     month = moment().utcOffset('+05:30').month(),
   ) => {
-    let dayInNumber = moment().utcOffset('+05:30').month(month).daysInMonth(); //Month starts from 0 to 11
+    let dayInNumber = moment().utcOffset('+05:30').month(month).daysInMonth();
     let weekendsDatesObject = {};
     let weekendsDatesArray: any[] = [];
 
@@ -165,11 +175,13 @@ const Home = () => {
 
   const checkLocation = async () => {
     const hasPermission = await requestLocationPermission();
-    if (!hasPermission) return; // Stop if permission is not granted
+    if (!hasPermission) return;
 
     Geolocation.getCurrentPosition(
       position => {
         const {latitude, longitude} = position.coords;
+        setCurrentLongitude(longitude);
+        setCurrentLattitude(latitude);
 
         console.log(`Current position: ${latitude}, ${longitude}`); // Log current position
 
@@ -180,7 +192,17 @@ const Home = () => {
 
         if (userIsInside) {
           setIsWithinArea(true);
-          Alert.alert('Login allowed');
+          dispatch(
+            setLoginDetails([
+              ...currentUSerLoginHistory,
+
+              {
+                dateString: moment().format('YYYY-MM-DD'),
+                latitude: latitude,
+                longitude: longitude,
+              },
+            ]),
+          );
         } else {
           setIsWithinArea(false);
           Alert.alert('Login denied', 'You are outside the allowed area.');
@@ -194,139 +216,160 @@ const Home = () => {
     );
   };
 
- /*  const callLeavesAppliedScreen = (
-    id: number,
-    fromDate: any,
-    toDate: any,
-    intimationType: string,
-    isOutOfOfficeEnable: boolean,
-    outOfOfficeMessage: string = '',
-    formMode: FormMode = FormMode.Edit,
-  ) => {
-    logs.info('Navigating to Leaves Applied Screen');
-    // console.log(
-    //   id,
-    //   fromDate,
-    //   toDate,
-    //   intimationType,
-    //   isOutOfOfficeEnable,
-    //   outOfOfficeMessage,
-    //   formMode,
-    // );
-
-    props.navigation.navigate('LeavesAppliedScreen', {
-      id,
-      fromDate,
-      toDate,
-      intimationType,
-      isOutOfOfficeEnable,
-      outOfOfficeMessage,
-      formMode,
-      FromDateSys: fromDate,
-      ToDateSys: toDate,
-    });
-  }; */
-
+  const logoutUserFunction = async () => {
+    dispatch(setLoginDetails([]));
+    await logoutUser();
+    // dispatch(setGlobalLoaderEnable());
+    // const requestBody = JSON.stringify({
+    //   UserId: userData.UserId,
+    // });
+    // const response = await ApiCall(API.Logout, requestBody);
+    // console.log('Logout response: ', response);
+    // if (response && response.message.toLowerCase() == 'ok' && response.data) {
+    //   await logoutUser();
+    // } else {
+    //   dispatch(setGlobalLoaderDisable());
+    //   Alert.alert('Failed to logout user, please try again later');
+    // }
+  };
+  //data clear nhi kiya tha maine redux me se abhi karta ha logout me click
   return (
     <SafeAreaView
       style={{flex: 1, backgroundColor: colors.screenBackgroundColor}}>
-         <ContainerView>
-          <Calendar
-            firstDay={1}
-            enableSwipeMonths
-            disableAllTouchEventsForDisabledDays
-            current={moment(currentDate)
-              .utcOffset('+05:30')
-              .format('YYYY-MM-DD')
-              .toString()}
-            // markedDates={disabledDatesObject}
-            onMonthChange={(date:any) => {
-              let changedMonthStartDateString = moment(date.dateString)
-                .startOf('year')
-                .format('YYYYMMDD');
-              let changedMonthEndDateString = moment(date.dateString)
-                .endOf('year')
-                .format('YYYYMMDD');
-              let changedMonthYear = moment(date.dateString).format('YYYY');
-              let previousSavedMonthYear = moment(currentDate).format('YYYY');
-
-              let changedMonthNYearFormat = moment(date.dateString).format(
-                'YYYY-MM',
-              );
-              let minDateMonthNYearFormat = moment(minMaxDate.minDate).format(
-                'YYYY-MM',
-              );
-              let maxDateMonthNYearFormat = moment(minMaxDate.maxDate).format(
-                'YYYY-MM',
-              );
-
-              weekendsDateFunction(date.year, date.month - 1);
-              setCurrentDate(date.dateString);
-
-              if (changedMonthNYearFormat == minDateMonthNYearFormat) {
-                setDisabledArrows({leftArrow: true, rightArrow: false});
-              } else if (changedMonthNYearFormat == maxDateMonthNYearFormat) {
-                setDisabledArrows({leftArrow: false, rightArrow: true});
-              } else {
-                setDisabledArrows({leftArrow: false, rightArrow: false});
-              }
-
-              if (changedMonthYear != previousSavedMonthYear) {
-               /*  onRefresh(
-                  changedMonthStartDateString,
-                  changedMonthEndDateString,
-                ); */
-              }
-            }}
-            // eslint-disable-next-line react/no-unstable-nested-components
-            dayComponent={({date, state}: any) => {
-              return (
-                <CalenderItem
-                  date={date}
-                  state={state}
-                  
-                  disabledDatesArray={disabledDatesArray}
-                  
-                  minMaxDate={minMaxDate}
-                  setIsEditCancelModalOpen={setIsEditCancelModalOpen}
-                  setParticularLeaveWFH={setParticularLeaveWFH}
-                  callLeavesAppliedScreen={()=>console.log("clicked")}
-                />
-              );
-            }}
-            disabledDaysIndexes={[5, 6]}
-            // displayLoadingIndicator={isLoading}
-            theme={{
-              // indicatorColor: Colors.primary,
-              textSectionTitleColor: colors.blackColor,
-              arrowColor: "green",
-            }}
-            // hideArrows
-            renderHeader={(date:any) => {
-              let dateString = date.toString();
-
-              return (
-                <TouchableOpacity
-                  style={styles.calendarWeekDays}
-                  onPress={() => {
-                    setIsMonthYearModalOpen(true);
-                  }}>
-                  <BaseText style={styles.calendarWeekDaysText}>
-                    {moment(dateString).format('MMMM YYYY')}
-                  </BaseText>
-                </TouchableOpacity>
-              );
-            }}
-            minDate={minMaxDate.minDate}
-            maxDate={minMaxDate.maxDate}
-            // disableArrowLeft={disabledArrows.leftArrow}
-            // disableArrowRight={disabledArrows.rightArrow}
-          />
-        </ContainerView>
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <BaseText style={{color: colors.blackColor}}>HomeScreen</BaseText>
-        <Button title="Check Login" onPress={checkLocation} />
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginHorizontal: width * 0.05,
+        }}>
+        <ButtonView
+          viewStyle={{
+            backgroundColor: '#17852e',
+            opacity: isWithinArea ? 0.5 : 1,
+          }}
+          onPress={checkLocation}
+          title={'Log In'}
+          isDisabled={isWithinArea}
+        />
+        <ButtonView
+          viewStyle={{backgroundColor: '#f54248'}}
+          onPress={logoutUserFunction}
+          title={'Log Out'}
+        />
       </View>
+      <ContainerView>
+        <Calendar
+          firstDay={1}
+          enableSwipeMonths
+          disableAllTouchEventsForDisabledDays
+          current={moment(currentDate)
+            .utcOffset('+05:30')
+            .format('YYYY-MM-DD')
+            .toString()}
+          // markedDates={disabledDatesObject}
+          onMonthChange={(date: any) => {
+            let changedMonthNYearFormat = moment(date.dateString).format(
+              'YYYY-MM',
+            );
+            let minDateMonthNYearFormat = moment(minMaxDate.minDate).format(
+              'YYYY-MM',
+            );
+            let maxDateMonthNYearFormat = moment(minMaxDate.maxDate).format(
+              'YYYY-MM',
+            );
+
+            weekendsDateFunction(date.year, date.month - 1);
+            setCurrentDate(date.dateString);
+            if (changedMonthNYearFormat == minDateMonthNYearFormat) {
+              setDisabledArrows({leftArrow: true, rightArrow: false});
+            } else if (changedMonthNYearFormat == maxDateMonthNYearFormat) {
+              setDisabledArrows({leftArrow: false, rightArrow: true});
+            } else {
+              setDisabledArrows({leftArrow: false, rightArrow: false});
+            }
+          }}
+          // eslint-disable-next-line react/no-unstable-nested-components
+          dayComponent={({date, state}: any) => {
+            const functionToHandleDatePress = () => {
+              // Check if a date with the same month and year exists in the login history
+              const isUserHistoryExist = currentUSerLoginHistory.find(
+                (item: any) => {
+                  // Compare only the month and year
+                  return (
+                    moment(item.dateString).isSame(
+                      moment(date.dateString),
+                      'month',
+                    ) &&
+                    moment(item.dateString).isSame(
+                      moment(date.dateString),
+                      'year',
+                    ) &&
+                    moment(item.dateString).isSame(
+                      moment(date.dateString),
+                      'day',
+                    )
+                  );
+                },
+              );
+
+              console.log('currentUSerLoginHistory', currentUSerLoginHistory);
+              console.log('isUserHistoryExist', isUserHistoryExist);
+
+              if (isUserHistoryExist) {
+                // If the date exists in the history (same month and year), show an alert with the dateString
+                Alert.alert(
+                  `Date: ${isUserHistoryExist.dateString} Latitude: ${isUserHistoryExist.latitude} Longitude: ${isUserHistoryExist.longitude}
+                  `,
+                );
+              } else {
+                // If the date doesn't exist in the history, show a default message
+                Alert.alert(
+                  `User login history doesn't exist for : ${date.dateString}`,
+                );
+              }
+
+              // Optionally, dispatch new login details if needed (this part is commented out in your code)
+            };
+
+            return (
+              <CalenderItem
+                date={date}
+                state={state}
+                minMaxDate={minMaxDate}
+                functionToHandleDatePress={functionToHandleDatePress}
+              />
+            );
+          }}
+          disabledDaysIndexes={[5, 6]}
+          // displayLoadingIndicator={isLoading}
+          theme={{
+            // indicatorColor: Colors.primary,
+            textSectionTitleColor: colors.blackColor,
+            arrowColor: 'green',
+          }}
+          // hideArrows
+          renderHeader={(date: any) => {
+            let dateString = date.toString();
+
+            return (
+              <TouchableOpacity
+                style={styles.calendarWeekDays}
+                onPress={() => {
+                  setIsMonthYearModalOpen(true);
+                }}>
+                <BaseText style={styles.calendarWeekDaysText}>
+                  {moment(dateString).format('MMMM YYYY')}
+                </BaseText>
+              </TouchableOpacity>
+            );
+          }}
+          minDate={minMaxDate.minDate}
+          maxDate={minMaxDate.maxDate}
+          // disableArrowLeft={disabledArrows.leftArrow}
+          // disableArrowRight={disabledArrows.rightArrow}
+        />
+      </ContainerView>
     </SafeAreaView>
   );
 };
@@ -344,6 +387,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  calendarWeekDaysText: {color: "green", fontWeight: 'bold'},
- 
+  calendarWeekDaysText: {color: 'green', fontWeight: 'bold'},
 });

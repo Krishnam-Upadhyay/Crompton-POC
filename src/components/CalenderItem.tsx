@@ -3,34 +3,19 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import OtherView from './OtherView';
 
-
 const CalenderItem = (props: any) => {
   const {
     date,
     state,
-    holidaysArray,
-    disabledDatesArray,
-    leaveArray,
-    isWFHVisible,
-    wfhArray,
-    travelArray,
+
     minMaxDate,
-    setIsEditCancelModalOpen,
-    setParticularLeaveWFH,
-    callLeavesAppliedScreen,
+    functionToHandleDatePress,
   } = props;
 
   let formatedDate = moment(date.dateString)
     .utcOffset('+05:30')
     .format('YYYYMMDD')
     .toString();
-
-
-
- 
-
-
-
 
   let dayNumber: any = moment(date.dateString).day();
 
@@ -48,14 +33,12 @@ const CalenderItem = (props: any) => {
 
   return (
     <View style={styles.calendarContainer}>
-      
-        <OtherView
-          callLeavesAppliedScreen={callLeavesAppliedScreen}
-          date={date}
-          state={state}
-          isWeekendDay={isWeekendDay}
-        />
-    
+      <OtherView
+        functionToHandleDatePress={functionToHandleDatePress}
+        date={date}
+        state={state}
+        isWeekendDay={isWeekendDay}
+      />
     </View>
   );
 };
@@ -64,5 +47,4 @@ export default CalenderItem;
 
 const styles = StyleSheet.create({
   calendarContainer: {alignItems: 'center', justifyContent: 'center'},
- 
 });

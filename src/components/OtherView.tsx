@@ -4,20 +4,14 @@ import {FormMode} from '../constants/FormMode';
 import BaseText from './BaseText/BaseText';
 import colors from '../globals/colors';
 
-
 const OtherView = (props: any) => {
-  const {callLeavesAppliedScreen, date, state, isWeekendDay} = props;
+  const {functionToHandleDatePress, date, state, isWeekendDay} = props;
   return (
-    <TouchableOpacity
-      onPress={() => {
-        console.log('dateClicked');
-       
-      }}
-     >
+    <TouchableOpacity onPress={functionToHandleDatePress}>
       <BaseText
         style={{
           ...styles.calendarWeekend,
-          ...( styles.calendarTextEnabledDateStyle),
+          ...styles.calendarTextEnabledDateStyle,
           ...(state === 'today'
             ? styles.calendarBgTodayDateStyle
             : isWeekendDay
@@ -53,9 +47,7 @@ const styles = StyleSheet.create({
     //backgroundColor: '#cfedeb',
     backgroundColor: 'green',
   },
-  calendarBgWeekendDateStyle: {
-  
-  },
+  calendarBgWeekendDateStyle: {},
   calendarBgOtherDateStyle: {
     backgroundColor: undefined,
   },

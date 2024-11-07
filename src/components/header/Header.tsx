@@ -29,7 +29,7 @@ const Header = (props: any) => {
             />
           </TouchableOpacity>
         </View>
-        <View style={styles.bellView}>
+        {/*   <View style={styles.bellView}>
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('NotificationScreen');
@@ -56,7 +56,7 @@ const Header = (props: any) => {
             }}>
             <GetProfilePic style={styles.profilePicture} isFromHeader={true} />
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
     </View>
   );
