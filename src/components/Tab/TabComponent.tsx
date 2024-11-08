@@ -17,37 +17,11 @@ const TabComponent = ({
   navigation: any;
 }) => {
   // Icon mapping
-  const Icons: any = {
-    Home: (props: any) => <Image source={images.tabHomeIcon} {...props} />,
-    /*   Achivements: (props: any) => <Image source={images.tabBageIcon} {...props} />,  */
-    Create: (props: any) => <Image source={images.tabBarIcon} {...props} />,
-    /*  Calender: (props: any) => <Image source={images.TabCalenderIcon} {...props} />,  */
-    Message: (props: any) => (
-      <Image source={images.TabCommentIcon} {...props} />
-    ),
-  };
 
   const Images: any = {
     Home: {
       focused: images.tabActiveHomeIcon, // Focused image
       unfocused: images.tabHomeIcon, // Default image
-    },
-    Badge: {
-      focused: images.tabActiveBadgIcon,
-      unfocused: images.tabBageIcon,
-    },
-    /*  Create: {
-      focused: images.tabActiveBarIcon,
-      unfocused: images.tabBarIcon,
-    }, */
-    /*  Calender: {
-      focused: images.tabActiveCalenderIcon,
-      unfocused: images.TabCalenderIcon,
-    }, */
-
-    Message: {
-      focused: images.TabActiveMessagIcon,
-      unfocused: images.TabCommentIcon,
     },
   };
 

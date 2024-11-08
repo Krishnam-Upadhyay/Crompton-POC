@@ -2,6 +2,8 @@ import moment from 'moment';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import OtherView from './OtherView';
+import BaseText from './BaseText/BaseText';
+import fontSize from '../globals/fontSize';
 
 const CalenderItem = (props: any) => {
   const {
@@ -10,6 +12,7 @@ const CalenderItem = (props: any) => {
 
     minMaxDate,
     functionToHandleDatePress,
+    isDisabled,
   } = props;
 
   let formatedDate = moment(date.dateString)
@@ -37,7 +40,7 @@ const CalenderItem = (props: any) => {
         functionToHandleDatePress={functionToHandleDatePress}
         date={date}
         state={state}
-        isWeekendDay={isWeekendDay}
+        isWeekendDay={isDisabled}
       />
     </View>
   );

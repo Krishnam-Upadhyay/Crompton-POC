@@ -29,24 +29,7 @@ const Header = (props: any) => {
             />
           </TouchableOpacity>
         </View>
-        {/*   <View style={styles.bellView}>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('NotificationScreen');
-            }}>
-            <View style={styles.notificationContainer}>
-              <Icon
-                name="bell"
-                color={colors.headerBellColor}
-                size={15}
-                style={styles.bellIcon}
-              />
-
-              <View style={styles.badge}>
-                <BaseText style={styles.badgeText}>{getNotiCount}</BaseText>
-              </View>
-            </View>
-          </TouchableOpacity>
+        <View style={styles.bellView}>
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('Profile');
@@ -56,7 +39,7 @@ const Header = (props: any) => {
             }}>
             <GetProfilePic style={styles.profilePicture} isFromHeader={true} />
           </TouchableOpacity>
-        </View> */}
+        </View>
       </View>
     </View>
   );
@@ -83,7 +66,7 @@ const styles = StyleSheet.create({
   },
   logoStyle: {},
   Logo: {
-    width: 100,
+    width: 40,
     height: 40,
   },
   profilePicture: {

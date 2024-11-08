@@ -2,7 +2,7 @@ import {StyleSheet, View} from 'react-native';
 import FastImage from 'react-native-fast-image';
 import {useSelector} from 'react-redux';
 import {azureAuthData, userDetails} from '../../redux/selectors/selectors';
-import {getUserInitials} from '../../Helpers/CommonFunctions/CommonFunctions';
+
 import BaseText from '../BaseText/BaseText';
 import colors from '../../globals/colors';
 import fontSize from '../../globals/fontSize';
@@ -26,8 +26,6 @@ export const GetProfilePic = ({style, isFromHeader = false}: any) => {
       />
     );
   } else {
-    const userInitials = getUserInitials(userData?.Name);
-
     /*  return (
       <View style={isFromHeader ? styles.profileImg4 : styles.profileImg3}>
         <BaseText

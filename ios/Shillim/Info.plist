@@ -92,28 +92,5 @@
 	<false/>
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
-	<!-- <key>TSKConfiguration</key>
-	<dict>
-		<key>kTSKSwizzleNetworkDelegates</key>
-		<true/>
-		<key>TSKPinnedDomains</key>
-		<dict>
-			<key>prosaresdev03.azurewebsites.net</key>
-			<dict>
-				<key>TSKIncludeSubdomains</key>
-				<true/>
-				<key>TSKEnforcePinning</key>
-				<false/>
-				<key>TSKDisableDefaultReportUri</key>
-				<true/>
-				<key>TSKPublicKeyHashes</key>
-				<array>
-					<string>cfZoOJHvBCZpfWBcceUflJp8zRQ/QD7gxSDY+2PubL4=</string>
-					<string>E++ujdrbZMGIJ0eA9QXCCHs5D8ABeIzQ2mAqHPFN+gs=</string>
-					<string>i7WTqTvh0OioIruIfFR4kMPnBqrS2rdiVPl/s2uC/CY=</string>
-				</array>
-			</dict>
-		</dict>
-	</dict> -->
 </dict>
 </plist>

@@ -1,26 +1,89 @@
 import React from 'react';
-import {StyleSheet, TouchableOpacity} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {FormMode} from '../constants/FormMode';
 import BaseText from './BaseText/BaseText';
 import colors from '../globals/colors';
+import {useSelector} from 'react-redux';
+import {loginDetailsOfUser} from '../redux/selectors/selectors';
+import moment from 'moment';
+import fontSize from '../globals/fontSize';
 
 const OtherView = (props: any) => {
   const {functionToHandleDatePress, date, state, isWeekendDay} = props;
+  console.log('date', date);
+  const currentUSerLoginHistory = useSelector(loginDetailsOfUser);
+  const isUserHistoryExist = currentUSerLoginHistory.find((item: any) => {
+    const currentDate = moment(moment(date.dateString).format('YYYY-MM-DD'));
+    return (
+      moment(item.dateString).isSame(currentDate, 'month') &&
+      moment(item.dateString).isSame(currentDate, 'year') &&
+      moment(item.dateString).isSame(currentDate, 'day')
+    );
+  });
+
+  console.log('userHistory', isUserHistoryExist);
+
   return (
-    <TouchableOpacity onPress={functionToHandleDatePress}>
-      <BaseText
-        style={{
-          ...styles.calendarWeekend,
-          ...styles.calendarTextEnabledDateStyle,
-          ...(state === 'today'
-            ? styles.calendarBgTodayDateStyle
-            : isWeekendDay
-            ? styles.calendarBgWeekendDateStyle
-            : styles.calendarBgOtherDateStyle),
-        }}>
-        {date.day}
-      </BaseText>
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity
+        disabled={isWeekendDay}
+        activeOpacity={isWeekendDay ? 0.5 : 1}
+        onPress={functionToHandleDatePress}>
+        <BaseText
+          style={{
+            ...styles.calendarWeekend,
+            ...styles.calendarTextEnabledDateStyle,
+            ...(state === 'today'
+              ? styles.calendarBgTodayDateStyle
+              : isWeekendDay
+              ? styles.calendarBgWeekendDateStyle
+              : styles.calendarBgOtherDateStyle),
+          }}>
+          {date.day}
+        </BaseText>
+      </TouchableOpacity>
+      {isUserHistoryExist && (
+        <>
+          <View
+            style={{
+              flexDirection: 'row',
+              position: 'absolute',
+              justifyContent: 'center',
+              top: 15,
+              gap: 5,
+
+              width: 40,
+            }}>
+            {isUserHistoryExist.inTime && (
+              <>
+                <Text
+                  style={{
+                    color: '#2cfc03',
+                    fontWeight: 'bold',
+                    fontSize: fontSize.font24,
+                  }}>
+                  &#8226;
+                </Text>
+              </>
+            )}
+            {isUserHistoryExist.outTime && (
+              <>
+                <Text
+                  style={{
+                    color: '#ff0000',
+                    fontWeight: 'bold',
+                    fontSize: fontSize.font24,
+                  }}>
+                  &#8226;
+                </Text>
+              </>
+            )}
+
+            {/* Second dot with a slight margin */}
+          </View>
+        </>
+      )}
+    </>
   );
 };
 
@@ -45,9 +108,9 @@ const styles = StyleSheet.create({
   },
   calendarBgTodayDateStyle: {
     //backgroundColor: '#cfedeb',
-    backgroundColor: 'green',
+    backgroundColor: '#2652E9',
   },
-  calendarBgWeekendDateStyle: {},
+  calendarBgWeekendDateStyle: {opacity: 0.2},
   calendarBgOtherDateStyle: {
     backgroundColor: undefined,
   },

@@ -8,8 +8,9 @@ import {
   PermissionsAndroid,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
-import NetInfo from '@react-native-community/netinfo';
+
 import {Calendar} from 'react-native-calendars';
 import ContainerView from '../../components/ContainerView';
 import Geolocation from 'react-native-geolocation-service';
@@ -21,8 +22,9 @@ import {useSelector, useDispatch} from 'react-redux';
 import {loginDetailsOfUser} from '../../redux/selectors/selectors';
 import {setLoginDetails} from '../../redux/features/Slices/loginDetailsSlice';
 import ButtonView from '../../components/ButtonView/ButtonView';
-import {opacity} from 'react-native-reanimated/lib/typescript/Colors';
-import {logoutUser} from '../../Helpers/CommonFunctions/CommonFunctions';
+
+import {useFocusEffect} from '@react-navigation/native';
+import CustomModal from '../../components/Modal/CustomeModel';
 
 const {height, width} = Dimensions.get('window');
 
@@ -47,10 +49,13 @@ const metersToDegrees = (meters: any) => {
 
 const Home = () => {
   const [isWithinArea, setIsWithinArea] = useState(false);
+  const [alreadyLoggedIn, setAlreadyLoggedIn] = useState<boolean>(false);
+  const [alreadyLoggedOut, setAlreadyLoggedOut] = useState<boolean>(false);
 
   const [isMonthYearModalOpen, setIsMonthYearModalOpen] = useState(false);
   const [currentLattitude, setCurrentLattitude] = useState<any>();
   const [currentLongitude, setCurrentLongitude] = useState<any>();
+  const [loading, setLoading] = useState(false);
 
   function pad(d: number) {
     return d < 10 ? '0' + d.toString() : d.toString();
@@ -72,8 +77,8 @@ const Home = () => {
       .toString(),
     maxDate: moment()
       .utcOffset('+05:30')
-      .add(6, 'months')
-      .endOf('month')
+      .subtract(1, 'months')
+      .startOf('month')
       .format('YYYY-MM-DD')
       .toString(),
   });
@@ -85,7 +90,24 @@ const Home = () => {
   });
 
   //onrefreshFuncion
+  useFocusEffect(
+    React.useCallback(() => {
+      const isUserHistoryExist = currentUSerLoginHistory.find((item: any) => {
+        const currentDate = moment(moment().format('YYYY-MM-DD')); // Get current date once
+        return (
+          moment(item.dateString).isSame(currentDate, 'month') &&
+          moment(item.dateString).isSame(currentDate, 'year') &&
+          moment(item.dateString).isSame(currentDate, 'day')
+        );
+      });
 
+      if (isUserHistoryExist) {
+        setAlreadyLoggedIn(true);
+      } else {
+        setAlreadyLoggedIn(false);
+      }
+    }, [currentUSerLoginHistory]), // Dependency array includes login history
+  );
   //calender weekDateFunction
   const weekendsDateFunction = (
     year = moment().utcOffset('+05:30').year(),
@@ -173,9 +195,12 @@ const Home = () => {
     );
   };
 
-  const checkLocation = async () => {
+  const checkLocation = async (type: string) => {
+    setLoading(true);
     const hasPermission = await requestLocationPermission();
-    if (!hasPermission) return;
+    if (!hasPermission) {
+      return;
+    }
 
     Geolocation.getCurrentPosition(
       position => {
@@ -183,59 +208,75 @@ const Home = () => {
         setCurrentLongitude(longitude);
         setCurrentLattitude(latitude);
 
-        console.log(`Current position: ${latitude}, ${longitude}`); // Log current position
+        console.log(`Current position: ${latitude}, ${longitude}`);
 
         const userIsInside = isPointWithinExpandedRectangle(
           latitude,
           longitude,
         );
-
+        setLoading(false);
         if (userIsInside) {
           setIsWithinArea(true);
-          dispatch(
-            setLoginDetails([
-              ...currentUSerLoginHistory,
+          if (type == 'inTime') {
+            dispatch(
+              setLoginDetails([
+                ...currentUSerLoginHistory,
 
-              {
-                dateString: moment().format('YYYY-MM-DD'),
-                latitude: latitude,
-                longitude: longitude,
-              },
-            ]),
-          );
+                {
+                  dateString: moment().format('YYYY-MM-DD'),
+                  latitude: latitude,
+                  longitude: longitude,
+                  inTime: moment().format('h:mm:ss a'),
+                },
+              ]),
+            );
+            Alert.alert('In Time Captured Successfully ');
+          } else if (type == 'outTime') {
+            const updatedData = currentUSerLoginHistory.map((item: any) => {
+              if (
+                moment(item.dateString).isSame(
+                  moment().format('YYYY-MM-DD'),
+                  'month',
+                ) &&
+                moment(item.dateString).isSame(
+                  moment().format('YYYY-MM-DD'),
+                  'year',
+                ) &&
+                moment(item.dateString).isSame(
+                  moment().format('YYYY-MM-DD'),
+                  'day',
+                )
+              ) {
+                setAlreadyLoggedOut(true);
+                return {...item, outTime: moment().format('h:mm:ss a')};
+              } else {
+                return item;
+              }
+            });
+            dispatch(setLoginDetails(updatedData));
+            Alert.alert('Out Time Captured Successfully ');
+          }
         } else {
           setIsWithinArea(false);
-          Alert.alert('Login denied', 'You are outside the allowed area.');
+          Alert.alert('Unable to capture attendance due to invalid location.');
         }
       },
       error => {
         console.error(error);
-        Alert.alert('Error', 'Unable to retrieve location');
+        Alert.alert('Pls grant Location permission');
       },
       {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
     );
   };
 
-  const logoutUserFunction = async () => {
-    dispatch(setLoginDetails([]));
-    await logoutUser();
-    // dispatch(setGlobalLoaderEnable());
-    // const requestBody = JSON.stringify({
-    //   UserId: userData.UserId,
-    // });
-    // const response = await ApiCall(API.Logout, requestBody);
-    // console.log('Logout response: ', response);
-    // if (response && response.message.toLowerCase() == 'ok' && response.data) {
-    //   await logoutUser();
-    // } else {
-    //   dispatch(setGlobalLoaderDisable());
-    //   Alert.alert('Failed to logout user, please try again later');
-    // }
-  };
-  //data clear nhi kiya tha maine redux me se abhi karta ha logout me click
   return (
     <SafeAreaView
       style={{flex: 1, backgroundColor: colors.screenBackgroundColor}}>
+      {loading && (
+        <View style={styles.activityIndicatorContainer}>
+          <ActivityIndicator size="large" color="#2652E9" />
+        </View>
+      )}
       <View
         style={{
           flexDirection: 'row',
@@ -245,17 +286,21 @@ const Home = () => {
         }}>
         <ButtonView
           viewStyle={{
-            backgroundColor: '#17852e',
-            opacity: isWithinArea ? 0.5 : 1,
+            backgroundColor: '#2652E9',
+            opacity: alreadyLoggedIn ? 0.5 : 1,
           }}
-          onPress={checkLocation}
-          title={'Log In'}
-          isDisabled={isWithinArea}
+          onPress={() => checkLocation('inTime')}
+          title={'In Time'}
+          isDisabled={alreadyLoggedIn}
         />
         <ButtonView
-          viewStyle={{backgroundColor: '#f54248'}}
-          onPress={logoutUserFunction}
-          title={'Log Out'}
+          viewStyle={{
+            backgroundColor: '#2652E9',
+            opacity: alreadyLoggedOut ? 0.5 : 1,
+          }}
+          onPress={() => checkLocation('outTime')}
+          title={'Out Time'}
+          isDisabled={alreadyLoggedOut}
         />
       </View>
       <ContainerView>
@@ -314,39 +359,57 @@ const Home = () => {
               );
 
               console.log('currentUSerLoginHistory', currentUSerLoginHistory);
-              console.log('isUserHistoryExist', isUserHistoryExist);
+              //console.log('isUserHistoryExist', isUserHistoryExist);
 
               if (isUserHistoryExist) {
                 // If the date exists in the history (same month and year), show an alert with the dateString
                 Alert.alert(
-                  `Date: ${isUserHistoryExist.dateString} Latitude: ${isUserHistoryExist.latitude} Longitude: ${isUserHistoryExist.longitude}
-                  `,
+                  `In Time: ${
+                    isUserHistoryExist.inTime ? isUserHistoryExist.inTime : 'NA'
+                  } \nOut Time: ${
+                    isUserHistoryExist.outTime
+                      ? isUserHistoryExist.outTime
+                      : 'NA'
+                  } `,
                 );
               } else {
                 // If the date doesn't exist in the history, show a default message
-                Alert.alert(
-                  `User login history doesn't exist for : ${date.dateString}`,
-                );
+                Alert.alert(`In Time: ${'NA'} \nOut Time: ${'NA'} `);
               }
 
               // Optionally, dispatch new login details if needed (this part is commented out in your code)
             };
-
-            return (
-              <CalenderItem
-                date={date}
-                state={state}
-                minMaxDate={minMaxDate}
-                functionToHandleDatePress={functionToHandleDatePress}
-              />
-            );
+            if (moment(date.dateString).isAfter(moment().format())) {
+              return (
+                <>
+                  <CalenderItem
+                    date={date}
+                    state={state}
+                    isDisabled={true}
+                    minMaxDate={minMaxDate}
+                    functionToHandleDatePress={functionToHandleDatePress}
+                  />
+                </>
+              );
+            } else {
+              return (
+                <>
+                  <CalenderItem
+                    date={date}
+                    state={state}
+                    minMaxDate={minMaxDate}
+                    isDisabled={false}
+                    functionToHandleDatePress={functionToHandleDatePress}
+                  />
+                </>
+              );
+            }
           }}
-          disabledDaysIndexes={[5, 6]}
           // displayLoadingIndicator={isLoading}
           theme={{
             // indicatorColor: Colors.primary,
-            textSectionTitleColor: colors.blackColor,
-            arrowColor: 'green',
+            textSectionTitleColor: '#2652E9',
+            arrowColor: '#2652E9',
           }}
           // hideArrows
           renderHeader={(date: any) => {
@@ -365,7 +428,11 @@ const Home = () => {
             );
           }}
           minDate={minMaxDate.minDate}
-          maxDate={minMaxDate.maxDate}
+          maxDate={moment()
+            .utcOffset('+05:30')
+            .endOf('month')
+            .format('YYYY-MM-DD')}
+          hideExtraDays={true}
           // disableArrowLeft={disabledArrows.leftArrow}
           // disableArrowRight={disabledArrows.rightArrow}
         />
@@ -387,5 +454,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  calendarWeekDaysText: {color: 'green', fontWeight: 'bold'},
+  calendarWeekDaysText: {color: '#2652E9', fontWeight: 'bold'},
+  activityIndicatorContainer: {
+    position: 'absolute',
+    top: '40%', // Adjust this based on your screen layout
+    left: '50%',
+    transform: [{translateX: -25}],
+    zIndex: 1000, // Make sure it's above other elements
+    backgroundColor: '2652E9',
+    padding: 10,
+    borderRadius: 5,
+  },
 });

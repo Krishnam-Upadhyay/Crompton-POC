@@ -15,33 +15,20 @@ import {store, persistor} from './src/redux/store';
 import {Provider} from 'react-redux';
 import {PersistGate} from 'redux-persist/integration/react';
 import BootSplash from 'react-native-bootsplash';
-import Testing from './src/components/Testing';
-import Login from './src/screens/Login/Login';
+
 import AppNavigator from './src/navigators/navigator';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PortalProvider} from '@gorhom/portal';
 import auth from '@react-native-firebase/auth';
 import messaging from '@react-native-firebase/messaging';
-import notifee, {EventType} from '@notifee/react-native';
-import {
-  createChannel,
-  onMessageReceived,
-  onMessageReceivedBackend,
-} from './src/Helpers/Notifications/Notifications';
+
 import {directoryPath, log} from './src/Helpers/CommonFunctions/FileLogger';
 import RNFS from 'react-native-fs';
-import RNScreenshotPrevent, {
-  addListener,
-} from 'react-native-screenshot-prevent';
+import RNScreenshotPrevent from 'react-native-screenshot-prevent';
 import Config from 'react-native-config';
 
 const App = () => {
-  const user = auth().currentUser;
-  const [loading, setLoading] = useState(true);
-
-  console.log('GOOGLE CLOUD user: ', user);
-
   if (!__DEV__) {
     console.log = () => {}; // Disable console.log
     console.warn = () => {}; // Disable console.warn
@@ -61,54 +48,31 @@ const App = () => {
   const createLogsFile = () => {
     try {
       RNFS.exists(directoryPath + '/logs').then(result => {
-        console.log('here');
+        //  console.log('here');
         if (result) {
-          console.log('here111');
+          //  console.log('here111');
           log.info('App Intializing');
         } else {
-          console.log('here222');
+          // console.log('here222');
           RNFS.mkdir(directoryPath + '/logs').then(res => {
-            console.log('here333');
-            console.log(res);
+            // console.log('here333');
+            // console.log(res);
             log.info('App Intializing');
           });
         }
       });
     } catch (err) {
-      console.log(err);
+      //console.log(err);
       log.error(err);
     }
   };
 
   async function onAppBootstrap() {
-    console.log('Inside onAppBootstrap');
+    // console.log('Inside onAppBootstrap');
     // Register the device with FCM
     await messaging().registerDeviceForRemoteMessages();
   }
 
-  messaging().onMessage(onMessageReceived);
-  messaging().setBackgroundMessageHandler(onMessageReceivedBackend);
-
-  //Local Noti
-  // notifee.onBackgroundEvent(async ({type, detail}) => {
-  //   const {notification, pressAction} = detail;
-
-  //   console.log('onBackgroundEvent notification: ', notification);
-  //   console.log('onBackgroundEvent pressAction: ', pressAction);
-
-  //   // Check if the user pressed the "Mark as read" action
-  //   if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
-  //     // Update external API
-  //     await fetch(`https://my-api.com/chat/${notification.data.chatId}/read`, {
-  //       method: 'POST',
-  //     });
-
-  //     // Remove the notification
-  //     await notifee.cancelNotification(notification.id);
-  //   }
-  // });
-
-  //BackPress handler
   useEffect(() => {
     configureScreenshotPrevent();
     const backAction = () => {

@@ -3,18 +3,15 @@
 import * as React from 'react';
 import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import Login from '../screens/Login/Login';
+
 import MySplashScreen from '../screens/Splash/MySplashScreen';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import Home from '../screens/Home/Home';
 import Header from '../components/header/Header';
-import {getHeaderTitle} from '@react-navigation/elements';
+
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import Achivements from '../screens/Home/Achivements';
-import Create from '../screens/Home/Create';
-import Calender from '../screens/Home/Calender';
+
 import TabComponent from '../components/Tab/TabComponent';
-import Message from '../screens/Home/Message';
 
 import colors from '../globals/colors';
 import Profile from '../screens/Profile/Profile';
@@ -32,36 +29,24 @@ import fontSize from '../globals/fontSize';
 import fontFamily from '../globals/fontFamily';
 import {useSelector} from 'react-redux';
 import {isLoading} from '../redux/selectors/selectors';
-import BasicModal from '../components/BasicModal/BasicModal';
 
 import {
   HeaderWithBackArrowButton,
   HeaderWithCrossButton,
 } from './CommonHeaders';
-import FlatListCheck from '../screens/Home/FlatList';
 
 import {Logs} from '../components/Logs/Logs';
 import LogsDetails from '../components/Logs/LogsDetails';
 import {navigationRef} from './navigationServices';
-
-import SplashScreen1 from '../screens/Splash/SplashScreen1';
 
 // Create Stack Navigators
 const SplashStack = createNativeStackNavigator();
 const SplashScreen = () => (
   <SplashStack.Navigator
     screenOptions={{headerShown: false}}
-    initialRouteName="SplashScreen1">
-    <SplashStack.Screen name="SplashScreen1" component={SplashScreen1} />
+    initialRouteName="SplashContainer">
     <SplashStack.Screen name="SplashContainer" component={MySplashScreen} />
   </SplashStack.Navigator>
-);
-
-const LoginStack = createNativeStackNavigator();
-const LoginScreens = () => (
-  <LoginStack.Navigator screenOptions={{headerShown: false}}>
-    <LoginStack.Screen name="LoginScreen" component={Login} />
-  </LoginStack.Navigator>
 );
 
 const HomeStack = createNativeStackNavigator();
@@ -106,23 +91,13 @@ const LogsStackScreens = () => (
 // </HomeStack.Navigator>
 // );
 
-// Create Drawer Navigator
-const Drawer = createDrawerNavigator();
-const DrawerScreen = () => (
-  <Drawer.Navigator>
-    <Drawer.Screen name="Login" component={LoginScreens} />
-  </Drawer.Navigator>
-);
-{
-  /* <TabComponent {...props} /> */
-}
 //Tab navigation
 const Tab = createBottomTabNavigator();
 const Tabs = () => {
   return (
     <Tab.Navigator
       tabBar={props => {
-        if (props.navigation.getState().index != 4) {
+        if (props.navigation.getState().index != 1) {
           return <TabComponent {...props} />;
         }
         return null;
@@ -143,22 +118,6 @@ const Tabs = () => {
       })}>
       <Tab.Screen name="Home" component={Home} />
 
-      {/* <Tab.Screen
-        name="Create"
-        component={Message}
-        options={{
-          headerShown: true,
-
-          tabBarStyle: {display: 'none'},
-        }}
-      /> */}
-
-      {/*   <Tab.Screen
-        name="Calender"
-        component={Message}
-        options={{headerShown: true}}
-      /> */}
-
       <Tab.Screen
         name="Profile"
         component={Profile}
@@ -176,33 +135,14 @@ const RootStackScreen = () => (
     initialRouteName="Splash"
     screenOptions={{headerShown: false}}>
     <RootStack.Screen name="Splash" component={SplashScreen} />
-    <RootStack.Screen name="Main" component={DrawerScreen} />
+
     <RootStack.Screen name="HomeScreen" component={HomeStackScreens} />
   </RootStack.Navigator>
 );
 
-const LoderModalComponent = () => {
-  const globalLoader = useSelector(isLoading);
-
-  return (
-    <BasicModal isModalVisible={globalLoader}>
-      <ActivityIndicator size="large" color={colors.secondary} />
-      <BaseText
-        style={{
-          marginTop: 10,
-          fontSize: fontSize.font16,
-          fontFamily: fontFamily.OxygenBold,
-        }}>
-        Loading...
-      </BaseText>
-    </BasicModal>
-  );
-};
-
 const AppNavigator = () => (
   <NavigationContainer ref={navigationRef}>
     <RootStackScreen />
-    <LoderModalComponent />
   </NavigationContainer>
 );
 

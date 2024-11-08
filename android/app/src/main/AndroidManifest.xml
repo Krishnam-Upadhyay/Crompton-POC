@@ -1,16 +1,15 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools">
+<manifest
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools">
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
   <uses-permission android:name="android.permission.WAKE_LOCK" />
   <uses-permission android:name="android.permission.VIBRATE" />
-  <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />  
+  <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
   <uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" />
-  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
   <application
     android:name=".MainApplication"
@@ -18,7 +17,7 @@ xmlns:tools="http://schemas.android.com/tools">
     android:icon="@mipmap/ic_launcher"
     android:roundIcon="@mipmap/ic_launcher_round"
     android:allowBackup="false"
-    android:usesCleartextTraffic="true"
+    android:usesCleartextTraffic="false"
     android:theme="@style/BootTheme">
     <activity
       android:name=".MainActivity"
@@ -41,7 +40,7 @@ xmlns:tools="http://schemas.android.com/tools">
           android:scheme="com.prosares.poc.geofencing" />
       </intent-filter>
     </activity>
-    <!-- Firebase Messaging Service -->
+
     <service
       android:name="com.google.firebase.messaging.FirebaseMessagingService"
       android:exported="true"
@@ -50,7 +49,5 @@ xmlns:tools="http://schemas.android.com/tools">
         <action android:name="com.google.firebase.MESSAGING_EVENT" />
       </intent-filter>
     </service>
-
-    <!-- Add additional services if needed -->
   </application>
 </manifest>
